@@ -1,0 +1,57 @@
+[package]
+name = "eas_api"
+version = "0.2.0"
+authors = ["Bruno Ricci <brricci@orange.fr>"]
+edition = "2021"
+
+
+[lib]
+name = "easlib"
+path = "src/lib.rs"
+
+[[bin]]
+name = "partial_test"
+path = "src/bin/partial_test.rs"
+
+[[bin]]
+name = "eas_test"
+path = "src/bin/eas_test.rs"
+
+[[bin]]
+name = "read_lines"
+path = "src/bin/read_lines.rs"
+
+[[bin]]
+name = "func_prog"
+path = "src/bin/func_prog.rs"
+
+[[bin]]
+name = "error_chain"
+path = "src/bin/error_chain.rs"
+
+[[bin]]
+name = "download_png"
+path = "src/bin/download_png.rs"
+
+[[bin]]
+name = "static_ref"
+path = "src/bin/static_ref.rs"
+
+[[bin]]
+name = "extract"
+path = "src/bin/extract.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+data-encoding = "2.3.2"
+error-chain = "0.12.4"
+futures = "0.3.13"
+lazy_static = "1.4.0"
+reqwest = { version ="0.11.2", features = ["json", "stream", "serde_json", "multipart"] }
+ring = "0.16.20"
+serde_json =  "1.0.64"
+serde = { version = "1.0.124", features = ["derive"] }
+tempfile = "3.2.0"
+tokio = { version = "1.4.0", features = ["full"] }
+tokio-util = { version = "0.6.5", features = ["codec"] }
