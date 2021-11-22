@@ -28,7 +28,6 @@ pub struct ErrorResponse {
     errorMessage : String,
     status : String,
 }
-
 impl ErrorResponse {
     fn get_error_code(&self) -> &String {
         let string = &self.errorCode;
@@ -46,9 +45,19 @@ impl ErrorResponse {
         ErrorResponse {errorCode: error_code, errorMessage: error_message, status }
     }
 }
+impl std::fmt::Display for ErrorResponse {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "Error Response: {} {} {} ", self.errorCode,self.errorMessage, self.status)
+    }
+}
 #[derive(Deserialize, Debug)]
 pub struct EasError {
     message: String,
+}
+impl std::fmt::Display for EasError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "message: {}", self.message)
+    }
 }
 #[derive(Deserialize, Debug)]
 pub struct SerdeError {
@@ -58,7 +67,6 @@ pub struct SerdeError {
 pub struct ReqWestError {
     message: String,
 }
-
 #[derive(Deserialize, Debug)]
 pub enum EasResult {
     Token(Token),
@@ -73,9 +81,7 @@ pub enum EasResult {
     ApiOk,
     None,
 }
-
 impl EasResult {
-
     fn get_ticket(&self) -> Option<&String> {
         if let EasResult::Ticket(at) = self {
             Some(at.get_ticket())
@@ -105,7 +111,6 @@ impl EasResult {
         }
     }
 }
-
 #[derive(Deserialize, Debug)]
 pub struct EasInfo {
     token: String,
@@ -113,7 +118,6 @@ pub struct EasInfo {
     address: String,
     digest: String,
 }
-
 impl EasInfo {
     fn new(token: String, filename: String, address: String, digest: String) -> Self {
         EasInfo {
@@ -124,24 +128,32 @@ impl EasInfo {
         }
     }
 }
-
 #[derive(Deserialize, Debug)]
 struct EasNVPair {
     name: String,
     value: String,
 }
-
+impl std::fmt::Display for EasNVPair {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "name: {}, value: {}", self.name, self.value)
+    }
+}
 #[derive(Deserialize, Debug)]
 pub struct EasMetaData {
     metadata: Vec<EasNVPair>,
 }
-
+impl std::fmt::Display for EasMetaData {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let res = self.metadata.iter().fold(String::new(), |acc, arg|
+            acc + arg.name.as_str() + "->" + arg.value.as_str() + ", ");
+        writeln!(f, "[{}]", res)
+    }
+}
 #[derive(Deserialize, Debug)]
 pub struct EasDocument {
     mimeType: String,
     base64Document: String,
 }
-
 impl EasDocument {
     fn new(mime_type: String, base64_document: String) -> Self {
         EasDocument {
@@ -150,12 +162,16 @@ impl EasDocument {
         }
     }
 }
+impl std::fmt::Display for EasDocument {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "mimetype: {:#?}, data:{:#?}", self.mimeType, self.base64Document)
+    }
+}
 #[derive(Deserialize, Debug)]
 pub struct EasArchiveInfo {
     mime_type: String,
     length: usize,
 }
-
 impl EasArchiveInfo {
     fn new(mime_type: String, length: usize) -> Self {
         EasArchiveInfo {
@@ -164,6 +180,12 @@ impl EasArchiveInfo {
         }
     }
 }
+impl std::fmt::Display for EasArchiveInfo {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "mime_type:{:#?}, length:{:#?}", self.mime_type, self.length)
+    }
+}
+
 
 pub struct EasAPI {
     credentials: Credentials,
@@ -171,9 +193,6 @@ pub struct EasAPI {
     digest: Option<String>,
     ticket: Option<Ticket>,
     error_response: Option<ErrorResponse>,
-}
-fn deserialize_error() -> () {
-
 }
 
 impl EasAPI {
@@ -309,6 +328,8 @@ impl EasAPI {
         let (digest_string, status) = compute_digest(fname);
         if !status { return Ok(EasResult::EasError(EasError{message:digest_string})); }
         self.set_digest(digest_string.clone());
+        // build part for first file
+        let file_part_async = self.file_as_part(address,"application/octet-stream").await?;
         if display {
             println!("SHA256 Digest for {} is {}", fname, self.digest.as_ref().unwrap().clone());
         }
@@ -320,6 +341,15 @@ impl EasAPI {
         if display {
             println!("SHA256 Digest for {} is {}", "/users/bruno/dvlpt/rust/archive1.txt", digest_string2);
         }
+        // build part for second file
+        let mut sync_buffer = Vec::new();
+        let path1 = Path::new("/users/bruno/dvlpt/rust/archive1.txt");
+        let mut file1 = File::open(path1).unwrap();
+        let _fcl = file1.read_to_end(&mut sync_buffer);
+        let file_content = str::from_utf8(&*sync_buffer).unwrap().to_string();
+        let file_part_sync2 = reqwest::multipart::Part::text(file_content)
+            .file_name(path1.file_name().unwrap().to_string_lossy())
+            .mime_str("application/octet-stream").unwrap();
 
         let meta = json!([
             {"name": "ClientId", "value": "987654321"},
@@ -330,30 +360,10 @@ impl EasAPI {
             {"fileName": fname, "value" : digest_string.clone(),"fingerPrintAlgorithm": "SHA-256"},
             {"fileName": "/users/bruno/dvlpt/rust/archive1.txt", "value" : digest_string2.clone(),"fingerPrintAlgorithm" : "SHA-256"}
         ]);
-        //let file_part_async = self.file_as_part(address,"application/octet-stream").await;
 
-        // part for first file
-        let mut async_buffer = Vec::new();
-        let path = Path::new(fname);
-        let mut file = Tokio_File::open(path).await?;
-        let _fcl = file.read_to_end(&mut async_buffer).await?;
-        let file_content = str::from_utf8(&*async_buffer).unwrap().to_string();
-        let file_part_async = reqwest::multipart::Part::text(file_content)
-            .file_name(path.file_name().unwrap().to_string_lossy())
-            .mime_str("application/octet-stream").unwrap();
-
-        // part for second file
-        let mut sync_buffer = Vec::new();
-        let path1 = Path::new("/users/bruno/dvlpt/rust/archive1.txt");
-        let mut file1 = File::open(path1).unwrap();
-        let _fcl = file1.read_to_end(&mut sync_buffer);
-        let file_content = str::from_utf8(&*sync_buffer).unwrap().to_string();
-        let file_part_sync2 = reqwest::multipart::Part::text(file_content)
-            .file_name(path1.file_name().unwrap().to_string_lossy())
-            .mime_str("application/octet-stream").unwrap();
 
         let form = Form::new()
-            .part("document", file_part_async)
+            .part("document",file_part_async)
             .part("document", file_part_sync2)
             .text("metadata", meta.to_string())
             .text("fingerPrints", upload_file_fingerprint.to_string());
@@ -535,40 +545,12 @@ impl EasAPI {
 }
 
 
-impl std::fmt::Display for ErrorResponse {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "Error Response: {} {} {} ", self.errorCode,self.errorMessage, self.status)
-    }
-}
-impl std::fmt::Display for EasError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "message: {}", self.message)
-    }
-}
 
-impl std::fmt::Display for EasDocument {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "mimetype: {:#?}, data:{:#?}", self.mimeType, self.base64Document)
-    }
-}
-impl std::fmt::Display for EasArchiveInfo {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "mime_type:{:#?}, length:{:#?}", self.mime_type, self.length)
-    }
-}
-impl std::fmt::Display for EasNVPair {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "name: {}, value: {}", self.name, self.value)
-    }
-}
 
-impl std::fmt::Display for EasMetaData {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let res = self.metadata.iter().fold(String::new(), |acc, arg|
-            acc + arg.name.as_str() + "->" + arg.value.as_str() + ", ");
-        writeln!(f, "[{}]", res)
-    }
-}
+
+
+
+
 pub fn get_inner_token(e: EasResult) -> Option<String> {
     match e {
         EasResult::Token(t) => Some(t.get_token().to_string()),
@@ -623,7 +605,7 @@ pub fn get_result_status<T>(opt_t: Result<EasResult, T>) -> (EasResult, bool) {
             (EasResult::EasError(eas), false)
         }
         _ => {
-            println!("Error while operating.");
+            println!("Another unknown error happened during operating.");
             (EasResult::None, false)
         }
     };
