@@ -25,7 +25,7 @@ async fn eas_process(address: i32, display: bool) ->  Result <bool, reqwest::Err
     // upload document now
     let opt_at = api.eas_post_document(
         address,
-        display).await;
+        false).await;
     let (eas_r, status) = get_result_status(opt_at);
     if !status {
         println!("Failed to get archive ticket. End eas process !");
@@ -49,7 +49,18 @@ async fn eas_process(address: i32, display: bool) ->  Result <bool, reqwest::Err
         return Ok(false);
     }
     eas_r.show("Archive Info");
-
+    println!("Try to delete archive {}",api.get_ticket_string().clone());
+    // delete document now
+    let opt_da = api.eas_delete_archive(
+        api.get_ticket_string(),
+        "IdecideToDelete",
+        display).await;
+    let (eas_r, status) = get_result_status(opt_da);
+    if !status {
+        println!("Failed to delete archive. End eas process !");
+        return Ok(false);
+    }
+    eas_r.show("Delete Archive");
     // TODO download individual file with POST to /eas/documents/{ticket}/fileName
     // TODO filename in requestBody (schema downloadItemRequest)
 

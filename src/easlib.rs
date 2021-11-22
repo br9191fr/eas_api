@@ -283,6 +283,35 @@ impl EasAPI {
         };
         Ok(eas_r)
     }
+    pub async fn eas_delete_archive(&self, ticket: &str, motivation: &str , display: bool) -> Result<EasResult, reqwest::Error> {
+        // was self.get_ticket_string()
+        let request_url = format!("{}/{}", "https://apprec.cecurity.com/eas.integrator.api/eas/documents", ticket);
+        if display { println!("Start delete archive"); }
+        let auth_bearer = format!("Bearer {}", self.get_token_string());
+
+        let response = Client::new()
+            .delete(request_url)
+            .header("Accept", "application/json")
+            .header("Authorization", auth_bearer)
+            .query(&[("motivation",motivation)])
+            .send().await?;
+        let sc = response.status();
+        if display {
+            let headers = response.headers();
+            for (key, value) in headers.iter() {
+                println!("{:?}: {:?}", key, value);
+            }
+        }
+        let body = response.text().await.unwrap();
+        if !sc.is_success() {
+            println!("Request failed => {}", sc);
+            return Ok(self.failure_info(sc,&body));
+        }
+        if display {
+            println!("Status : {:#?}\n{:#?}", sc, body);
+        }
+        Ok(EasResult::ApiOk)
+    }
     pub async fn eas_get_archive(&self, display: bool) -> Result<EasResult, reqwest::Error> {
         let request_url = format!("{}/{}", "https://apprec.cecurity.com/eas.integrator.api/eas/documents", self.get_ticket_string());
         if display { println!("Start get archive"); }

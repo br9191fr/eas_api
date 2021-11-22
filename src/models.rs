@@ -266,9 +266,7 @@ pub struct EasDocument {
 
 impl EasDocument {
     fn new(mime_type: String, base64_document: String) -> Self {
-        EasDocument {
-            mime_type: mime_type,
-            base64_document: base64_document,
+        EasDocument { mime_type, base64_document,
         }
     }
     pub fn get_mime_type(&self) -> String {

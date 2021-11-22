@@ -18,6 +18,10 @@ name = "eas_test"
 path = "src/bin/eas_test.rs"
 
 [[bin]]
+name = "eas_delete"
+path = "src/bin/eas_delete.rs"
+
+[[bin]]
 name = "read_lines"
 path = "src/bin/read_lines.rs"
 
