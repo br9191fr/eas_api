@@ -1,73 +1,25 @@
 #![allow(dead_code)]
 
-use std::collections::HashMap;
-
 use std::fmt;
 use std::fs::File;
 use std::io::{BufReader, Read, Write};
 use std::path::Path;
 use std::str;
-use std::sync::Mutex;
 
 use data_encoding::{BASE64, HEXLOWER};
-use lazy_static::lazy_static;
 
 use reqwest::{Client, StatusCode};
 use reqwest::multipart::Form;
 use ring::digest::{Context, Digest, SHA256};
 use serde_json::{Error, json};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize};
 use tokio::fs::File as Tokio_File;
 use tokio::io::AsyncReadExt;
-use tokio_util::codec::{BytesCodec, FramedRead};
 
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Credentials {
-    appId: String,
-    appToken: String,
-    accountName: String,
-}
+use crate::models::{Credentials, Token, Ticket};
+use crate::utils::LOCATIONS;
 
-impl Credentials {
-    pub fn new(id: String, token: String, name: String) -> Self {
-        Credentials {
-            appId: id,
-            appToken: token,
-            accountName: name,
-        }
-    }
-}
-
-#[derive(Deserialize, Debug)]
-pub struct Token {
-    token: String,
-}
-
-impl Token {
-    fn new(token: String) -> Self {
-        Token { token }
-    }
-    fn get_token(&self) -> &String {
-        let string = &self.token;
-        string
-    }
-}
-
-#[derive(Deserialize, Debug)]
-pub struct Ticket {
-    ticket: String,
-}
-
-impl Ticket {
-    fn get_ticket(&self) -> &String {
-        let string = &self.ticket;
-        string
-    }
-    fn new(ticket: String) -> Self {
-        Ticket { ticket }
-    }
-}
 // EasResponse is Error Result from authenticate, post document, get documents, download documents
 // delete documents, get documents metadata, update document metadata, get content of archive
 #[derive(Deserialize, Debug)]
@@ -582,26 +534,7 @@ impl EasAPI {
     }
 }
 
-impl std::fmt::Display for Credentials {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "credentials: {}\n{}\n{}",
-                 self.appId,
-                 self.appToken,
-                 self.accountName)
-    }
-}
 
-impl std::fmt::Display for Token {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "token: {}", self.token)
-    }
-}
-
-impl std::fmt::Display for Ticket {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "Ticket: {}", self.ticket)
-    }
-}
 impl std::fmt::Display for ErrorResponse {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "Error Response: {} {} {} ", self.errorCode,self.errorMessage, self.status)
@@ -636,14 +569,6 @@ impl std::fmt::Display for EasMetaData {
         writeln!(f, "[{}]", res)
     }
 }
-pub fn build_static_locations(w: i32, file_to_archive: &String) -> i32 {
-    let ad_where = w;
-    let mut locations = LOCATIONS.lock().unwrap();
-    locations.insert(ad_where, string_to_static_str(file_to_archive.to_string()));
-    return ad_where;
-}
-
-
 pub fn get_inner_token(e: EasResult) -> Option<String> {
     match e {
         EasResult::Token(t) => Some(t.get_token().to_string()),
@@ -703,21 +628,6 @@ pub fn get_result_status<T>(opt_t: Result<EasResult, T>) -> (EasResult, bool) {
         }
     };
     (eas_r, status)
-}
-
-fn string_to_static_str(s: String) -> &'static str {
-    Box::leak(s.into_boxed_str())
-}
-
-lazy_static! {
-    static ref LOCATIONS: Mutex<HashMap<i32, &'static str>> =
-    Mutex::new(generate_static_locations());
-}
-
-fn generate_static_locations() -> HashMap<i32, &'static str> {
-    let mut m = HashMap::new();
-    m.insert(0, "data0");
-    m
 }
 
 pub fn compute_digest(path: &str) -> (String, bool) {

@@ -1,9 +1,9 @@
 extern crate easlib;
-
-use easlib::easlib::{EasAPI};
-use easlib::easlib::{get_result_status, build_static_locations};
-use easlib::bri_cred::{get_credentials};
 use std::env;
+use easlib::easlib::{EasAPI};
+use easlib::easlib::{get_result_status};
+use easlib::bri_cred::{get_credentials};
+use easlib::utils::{build_static_locations};
 
 async fn eas_process(address: i32, display: bool) ->  Result <bool, reqwest::Error > {
     //let credentials = Credentials::new("xxxxx".to_owned(),"tttt".to_owned(),"myAccount".to_owned());
