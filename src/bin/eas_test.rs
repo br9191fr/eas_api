@@ -1,9 +1,9 @@
 extern crate easlib;
 use std::env;
 use easlib::easlib::{EasAPI};
-use easlib::easlib::{get_result_status};
 use easlib::bri_cred::{get_credentials};
 use easlib::utils::{build_static_locations};
+use easlib::models::{get_result_status};
 
 async fn eas_process(address: i32, display: bool) ->  Result <bool, reqwest::Error > {
     //let credentials = Credentials::new("xxxxx".to_owned(),"tttt".to_owned(),"myAccount".to_owned());
@@ -21,11 +21,11 @@ async fn eas_process(address: i32, display: bool) ->  Result <bool, reqwest::Err
     }
     if display { println!("token found {}",api.get_token_string()); }
     eas_r.show("Get Token");
-
+    println!("Start upload now !");
     // upload document now
     let opt_at = api.eas_post_document(
         address,
-        false).await;
+        display).await;
     let (eas_r, status) = get_result_status(opt_at);
     if !status {
         println!("Failed to get archive ticket. End eas process !");
