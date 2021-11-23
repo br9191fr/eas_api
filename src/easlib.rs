@@ -21,23 +21,52 @@ use crate::utils::LOCATIONS;
 // EasResponse is Error Result from authenticate, post document, get documents, download documents
 // delete documents, get documents metadata, update document metadata, get content of archive
 
-
+#[derive(Clone)]
 pub struct EasAPI {
     credentials: Credentials,
     token: Option<Token>,
     digest: Option<String>,
     ticket: Option<Ticket>,
     error_response: Option<ErrorResponse>,
+    doc_list: Option<Vec<String>>
 }
 impl EasAPI {
     pub fn new(credentials: Credentials) -> Self {
-        EasAPI { credentials, token: None, digest: None, ticket: None, error_response: None }
+        EasAPI { credentials, token: None, digest: None, ticket: None, error_response: None, doc_list: None }
     }
     pub fn set_credentials(&mut self, credentials: Credentials) {
         self.credentials = credentials;
     }
     pub fn set_token(&mut self, token: String) {
         self.token = Some(Token::new(token));
+    }
+    pub fn set_doc_list(&mut self, doc_list : Vec<String>) { self.doc_list = Some(doc_list.clone());}
+    pub fn show(&self) -> () {
+        println!("Summary\n---------------------");
+        println!("credentials: {:?}",self.credentials);
+        match &self.token {
+            Some (t) => println!("token: {:?}",t),
+            _ => println!("token: None")
+        };
+        match &self.digest {
+            Some (d) => println!("digest: {:?}",d),
+            _ => println!("digest: None")
+        };
+        match &self.ticket {
+            Some (t) => println!("ticket: {:?}",t),
+            _ => println!("ticket: None")
+        };
+        match &self.error_response {
+            Some (e) => println!("error_response: {:?}",e),
+            _ => println!("error_response: None")
+        };
+        match &self.doc_list {
+            Some (dl) => {
+                for d in dl { println!("doc: {:?}",d) }
+            },
+            _ => println!("doc_list: None")
+        };
+        println!("---------------------");
     }
     pub fn get_token_string(&self) -> &String {
         self.token.as_ref().unwrap().get_token()
@@ -244,7 +273,7 @@ impl EasAPI {
         if display { println!("Stop post document"); }
         Ok(eas_r)
     }
-    pub async fn eas_get_content_list(&self,display: bool) -> Result<EasResult, reqwest::Error> {
+    pub async fn eas_get_content_list(&mut self,display: bool) -> Result<EasResult, reqwest::Error> {
         let request_url = format!("https://apprec.cecurity.com/eas.integrator.api/eas/documents/{}/contentList",self.get_ticket_string());
         if display { println!("Start get content list"); }
         let auth_bearer = format!("Bearer {}", self.get_token_string());
@@ -270,13 +299,16 @@ impl EasAPI {
             println!("Status : {:#?}\n{:#?}", sc, body);
         }
         let r: Result<Vec<String>, Error> = serde_json::from_str(&body);
+        let mut doc_list : Vec<String> = Vec::new();
         let eas_r: EasResult = match r {
             Ok(res) => {
                 println!("Found {} documents",res.len());
                 for st in &res {
                     println!("Found {}",st);
+                    doc_list.push(st.clone());
                 }
                 // TODO Save content list of documents in archive
+                self.set_doc_list(doc_list);
                 EasResult::ApiOk
             },
             Err(e) => EasResult::SerdeError(SerdeError::new(e.to_string().as_str()))

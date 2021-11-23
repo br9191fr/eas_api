@@ -18,6 +18,9 @@ name = "eas_test"
 path = "src/bin/eas_test.rs"
 
 [[bin]]
+name = "eas_thread"
+path = "src/bin/eas_thread.rs"
+[[bin]]
 name = "eas_delete"
 path = "src/bin/eas_delete.rs"
 
@@ -57,5 +60,5 @@ ring = "0.16.20"
 serde_json =  "1.0.64"
 serde = { version = "1.0.124", features = ["derive"] }
 tempfile = "3.2.0"
-tokio = { version = "1.4.0", features = ["full"] }
-tokio-util = { version = "0.6.5", features = ["codec"] }
+tokio = { version = "1.14.0", features = ["full"] }
+tokio-util = { version = "0.6.9", features = ["codec"] }

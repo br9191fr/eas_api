@@ -3,7 +3,7 @@
 use std::fmt;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Credentials {
     #[serde(rename(serialize = "appId"))]
     app_id: String,
@@ -32,7 +32,7 @@ impl std::fmt::Display for Credentials {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Clone, Deserialize, Debug)]
 pub struct Token {
     token: String,
 }
@@ -53,7 +53,7 @@ impl std::fmt::Display for Token {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Clone, Deserialize, Debug)]
 pub struct Ticket {
     ticket: String,
 }
@@ -74,7 +74,7 @@ impl std::fmt::Display for Ticket {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Clone, Deserialize, Debug)]
 pub struct ErrorResponse {
     #[serde(rename = "errorCode")]
     error_code: String,
