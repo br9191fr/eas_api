@@ -146,7 +146,7 @@ paths:
           description: Unauthorized
         '404':
           description: Not Found
-      operationId: DownloaDocument
+      operationId: DownloadDocument
       description: Download document
       parameters:
         - schema:
