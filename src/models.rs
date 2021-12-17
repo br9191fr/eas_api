@@ -55,22 +55,23 @@ impl std::fmt::Display for Token {
 
 #[derive(Clone, Deserialize, Debug)]
 pub struct Ticket {
-    ticket: String,
+    #[serde(rename = "archiveTicket")]
+    archive_ticket: String,
 }
 
 impl Ticket {
     pub fn new(ticket: String) -> Self {
-        Ticket { ticket }
+        Ticket { archive_ticket: ticket }
     }
     pub fn get_ticket(&self) -> &String {
-        let string = &self.ticket;
+        let string = &self.archive_ticket;
         string
     }
 }
 
 impl std::fmt::Display for Ticket {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "Ticket: {}", self.ticket)
+        writeln!(f, "Ticket: {}", self.archive_ticket)
     }
 }
 

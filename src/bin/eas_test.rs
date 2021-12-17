@@ -15,7 +15,7 @@ async fn eas_process(address: i32, display: bool) -> Result<bool, reqwest::Error
 
     if display { println!("Step authenticate"); }
     // authenticate and get token
-    let opt_t = api.eas_get_token(false).await;
+    let opt_t = api.eas_get_token(display).await;
     if display { println!("Step get status"); }
     let (eas_r, status) = get_result_status(opt_t);
     if !status {
@@ -28,7 +28,7 @@ async fn eas_process(address: i32, display: bool) -> Result<bool, reqwest::Error
     // upload document now
     let opt_at = api.eas_post_document(
         address,
-        false).await;
+        display).await;
     let (eas_r, status) = get_result_status(opt_at);
     if !status {
         println!("Failed to get archive ticket. End eas process !");
@@ -114,7 +114,7 @@ async fn main() {
     let test = true;
     if test {
         let final_result = eas_process(
-            address, false).await;
+            address, true).await;
         match final_result {
             Ok(true) => println!("eas test is ok"),
             Ok(false) => println!("eas test failed"),
