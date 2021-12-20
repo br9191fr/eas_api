@@ -333,7 +333,7 @@ components:
       title: uploadResponse
       type: object
       properties:
-        ticket:
+        archiveTicket:
           type: string
     authenticationRequest:
       title: authenticationRequest
