@@ -1,0 +1,13 @@
+Après authentification pour obtenir le token => Bearer
+
+Apple curl
+
+curl -X POST \
+'https://apprec.cecurity.com/eas.integrator.api/eas/documents' \
+-H 'Accept: */*' \
+-H 'User-Agent: Thunder Client (https://www.thunderclient.io)' \
+-H 'Authorization: Bearer MUxRVz......UzRA==' \
+--form 'metadata="[{"name": "ClientId", "value": "123456789"},{"name": "CustomerId", "value": "AZER456"},{"name": "Documenttype", "value": "Incoming invoice"}]"' \
+--form 'fingerPrints="[{"fileName": demo1.pdf, "value" : "ECD77...5443","fingerPrintAlgorithm": "SHA-256"},{"fileName": demo2.pdf, "value" : "ABC87...CAEF","fingerPrintAlgorithm": "SHA-256"}]"' \
+--form 'document=@c:\temp\demo1.pdf' \
+--form 'document=@c:\temp\demo2.pdf'
