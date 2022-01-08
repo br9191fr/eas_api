@@ -221,8 +221,9 @@ impl EasAPI {
         let meta = json!([
             {"name": "ClientId", "value": "987654321"},
             {"name": "CustomerId", "value": "CLIENT-BRI"},
-            {"name": "Documenttype", "value": "Validated invoice"}]);
-
+            {"name": "Documenttype", "value": "Validated invoice"}
+        ]);
+        // TODO Add additional file with metadata inside
         let upload_file_fingerprint = json!([
             {"fileName": fname, "value" : digest_string.clone(),"fingerPrintAlgorithm": "SHA-256"},
             {"fileName": "/users/bruno/dvlpt/rust/archive1.txt", "value" : digest_string2.clone(),"fingerPrintAlgorithm" : "SHA-256"}
