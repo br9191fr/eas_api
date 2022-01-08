@@ -53,6 +53,16 @@ async fn eas_process(address: i32, display: bool) -> Result<bool, reqwest::Error
     }
     eas_r.show("Archive Info");
     api.show();
+    // TODO play with metadata with /eas/documents/{ticket}/metadata
+    let opt_dm = api.eas_get_document_metadata(display).await;
+    let (eas_r, status) = get_result_status(opt_dm);
+
+    if !status {
+        println!("Failed to get document metadata. End eas process !");
+        return Ok(false);
+    }
+    eas_r.show("MetaData");
+
     println!("Try to delete archive {}", api.get_ticket_string().clone());
     // delete document now
     let opt_da = api.eas_delete_archive(
@@ -90,10 +100,9 @@ async fn eas_process(address: i32, display: bool) -> Result<bool, reqwest::Error
         println!("{:?}", jh.join().unwrap());
     }
     */
-    // TODO download individual file with POST to /eas/documents/{ticket}/fileName
+    // TODO download individual file with GET to /eas/documents/{ticket}/fileName
     // TODO filename in requestBody (schema downloadItemRequest)
 
-    // TODO play with metadata with /eas/documents/{ticket}/metadata
     // TODO use get/post/patch http commands
 
     // TODO get matching documents
