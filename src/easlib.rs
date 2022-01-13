@@ -194,6 +194,8 @@ impl EasAPI {
         drop(my_ref1);
         let (digest_string, status) = compute_digest(fname);
         if !status { return Ok(EasResult::EasError(EasError::new(digest_string.as_str())))}
+        let file1_name = Path::new(fname).file_name().unwrap().to_str().unwrap();
+
         self.set_digest(digest_string.clone());
         // build part for first file
         let file_part_async = self.file_as_part(address,"application/octet-stream").await?;
@@ -211,6 +213,7 @@ impl EasAPI {
         // build part for second file
         let mut sync_buffer = Vec::new();
         let path1 = Path::new("/users/bruno/dvlpt/rust/archive1.txt");
+        let file2_name = path1.file_name().unwrap().to_str().unwrap();
         let mut file1 = File::open(path1).unwrap();
         let _fcl = file1.read_to_end(&mut sync_buffer);
         let file_content = str::from_utf8(&*sync_buffer).unwrap().to_string();
@@ -224,11 +227,12 @@ impl EasAPI {
             {"name": "Documenttype", "value": "Validated invoice"}
         ]);
         // TODO Add additional file with metadata inside
-        let upload_file_fingerprint = json!([
-            {"fileName": fname, "value" : digest_string.clone(),"fingerPrintAlgorithm": "SHA-256"},
-            {"fileName": "/users/bruno/dvlpt/rust/archive1.txt", "value" : digest_string2.clone(),"fingerPrintAlgorithm" : "SHA-256"}
-        ]);
+        // was  fname instead of archive.txt
 
+        let upload_file_fingerprint = json!([
+            {"fileName": file1_name, "fingerPrint" : digest_string.clone().to_lowercase(),"fingerPrintAlgorithm": "SHA-256"},
+            {"fileName": file2_name, "fingerPrint" : digest_string2.clone().to_lowercase(),"fingerPrintAlgorithm" : "SHA-256"}
+        ]);
 
         let form = Form::new()
             .part("document",file_part_async)
