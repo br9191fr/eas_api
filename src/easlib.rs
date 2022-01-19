@@ -231,7 +231,8 @@ impl EasAPI {
 
         let upload_file_fingerprint = json!([
             {"fileName": file1_name, "fingerPrint" : digest_string.clone().to_lowercase(),"fingerPrintAlgorithm": "SHA-256"},
-            {"fileName": file2_name, "fingerPrint" : digest_string2.clone().to_lowercase(),"fingerPrintAlgorithm" : "SHA-256"}
+//            {"fileName": "toto.pdf", "fingerPrint" : digest_string.clone().to_lowercase(),"fingerPrintAlgorithm": "SHA-256"},
+            {"fileName": file2_name, "fingerPrint" : digest_string2.clone().to_uppercase(),"fingerPrintAlgorithm" : "SHA-256"}
         ]);
 
         let form = Form::new()

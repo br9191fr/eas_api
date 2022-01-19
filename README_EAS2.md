@@ -90,15 +90,15 @@ POST /eas/documents
 
 <u>Request body (multipart/form-data):</u>
 
-- fingerprint
+- fingerPrint
 
 - fingerprintAlgorithm (NONE, MD5, SHA-1, SHA-256, SHA-512)
 
 - document (binary)
 
 - metadata (list of name value pairs)
-
-  
+ 
+-fingerPrints (array of (filename,fingerPrint,fingerPrintAlgorithm))
 
 <u>Responses:</u>
 
