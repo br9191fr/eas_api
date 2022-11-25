@@ -8,7 +8,7 @@ use easlib::bri_cred::{get_credentials};
 use easlib::utils::{build_static_locations};
 use easlib::models::{get_result_status};
 
-async fn eas_process(address: i32, display: bool) -> Result<bool, reqwest::Error> {
+async fn eas_process(address: i32, display: bool, delete_finally: bool) -> Result<bool, reqwest::Error> {
     //let credentials = Credentials::new("xxxxx".to_owned(),"tttt".to_owned(),"myAccount".to_owned());
     let credentials_ok = get_credentials();
     let mut api = EasAPI::new(credentials_ok);
@@ -62,19 +62,21 @@ async fn eas_process(address: i32, display: bool) -> Result<bool, reqwest::Error
         return Ok(false);
     }
     eas_r.show("MetaData");
-
-    println!("Try to delete archive {}", api.get_ticket_string().clone());
-    // delete document now
-    let opt_da = api.eas_delete_archive(
-        api.get_ticket_string(),
-        "IdecideToDelete",
-        display).await;
-    let (eas_r, status) = get_result_status(opt_da);
-    if !status {
-        println!("Failed to delete archive. End eas process !");
-        return Ok(false);
+    if delete_finally {
+        println!("Try to delete archive {}", api.get_ticket_string().clone());
+        // delete document now
+        let opt_da = api.eas_delete_archive(
+            api.get_ticket_string(),
+            "IdecideToDelete",
+            display).await;
+        let (eas_r, status) = get_result_status(opt_da);
+        if !status {
+            println!("Failed to delete archive. End eas process !");
+            return Ok(false);
+        }
+        eas_r.show("Delete Archive");
     }
-    eas_r.show("Delete Archive");
+
     // TODO Upload in threads
     /*
     let num_threads = 10;
@@ -121,9 +123,10 @@ async fn main() {
 
     let address = build_static_locations(1, file_to_archive);
     let test = true;
+    let delete_finally = false;
     if test {
         let final_result = eas_process(
-            address, true).await;
+            address, true,delete_finally ).await;
         match final_result {
             Ok(true) => println!("eas test is ok"),
             Ok(false) => println!("eas test failed"),

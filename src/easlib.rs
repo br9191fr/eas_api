@@ -11,7 +11,7 @@ use reqwest::multipart::Form;
 use ring::digest::{Context, Digest, SHA256};
 use serde_json::{Error, json};
 use tokio::fs::File as Tokio_File;
-use tokio::io::AsyncReadExt;
+use tokio::io::{AsyncReadExt};
 
 use crate::models::{Credentials, Token, Ticket};
 use crate::models::{ErrorResponse, EasError, SerdeError, ReqWestError, EasResult};
@@ -28,8 +28,9 @@ pub struct EasAPI {
     digest: Option<String>,
     ticket: Option<Ticket>,
     error_response: Option<ErrorResponse>,
-    doc_list: Option<Vec<String>>
+    doc_list: Option<Vec<String>>,
 }
+
 impl EasAPI {
     pub fn new(credentials: Credentials) -> Self {
         EasAPI { credentials, token: None, digest: None, ticket: None, error_response: None, doc_list: None }
@@ -40,30 +41,30 @@ impl EasAPI {
     pub fn set_token(&mut self, token: String) {
         self.token = Some(Token::new(token));
     }
-    pub fn set_doc_list(&mut self, doc_list : Vec<String>) { self.doc_list = Some(doc_list.clone());}
+    pub fn set_doc_list(&mut self, doc_list: Vec<String>) { self.doc_list = Some(doc_list.clone()); }
     pub fn show(&self) -> () {
         println!("Summary\n---------------------");
-        println!("credentials: {:?}",self.credentials);
+        println!("credentials: {:?}", self.credentials);
         match &self.token {
-            Some (t) => println!("token: {:?}",t),
+            Some(t) => println!("token: {:?}", t),
             _ => println!("token: None")
         };
         match &self.digest {
-            Some (d) => println!("digest: {:?}",d),
+            Some(d) => println!("digest: {:?}", d),
             _ => println!("digest: None")
         };
         match &self.ticket {
-            Some (t) => println!("ticket: {:?}",t),
+            Some(t) => println!("ticket: {:?}", t),
             _ => println!("ticket: None")
         };
         match &self.error_response {
-            Some (e) => println!("error_response: {:?}",e),
+            Some(e) => println!("error_response: {:?}", e),
             _ => println!("error_response: None")
         };
         match &self.doc_list {
-            Some (dl) => {
-                for d in dl { println!("doc: {:?}",d) }
-            },
+            Some(dl) => {
+                for d in dl { println!("doc: {:?}", d) }
+            }
             _ => println!("doc_list: None")
         };
         println!("---------------------");
@@ -89,7 +90,7 @@ impl EasAPI {
             _ => &None,
         }
     }
-    pub fn failure_info (&self, sc: StatusCode, body: &str) -> EasResult {
+    pub fn failure_info(&self, sc: StatusCode, body: &str) -> EasResult {
         return match sc {
             StatusCode::BAD_REQUEST => EasResult::ReqWestError(ReqWestError::new("Bad Request")),
             _ => {
@@ -99,12 +100,12 @@ impl EasAPI {
                         EasResult::EasError(EasError::new(res.to_string().as_str()))
                     }
                     Err(e) => {
-                        EasResult::SerdeError(SerdeError::new( e.to_string().as_str()))
+                        EasResult::SerdeError(SerdeError::new(e.to_string().as_str()))
                     }
                 };
                 a_er
             }
-        }
+        };
     }
     pub async fn eas_get_token(&mut self, display: bool) -> Result<EasResult, reqwest::Error> {
         let request_url = "https://apprec.cecurity.com/eas.integrator.api/service/authenticate";
@@ -148,7 +149,7 @@ impl EasAPI {
         if display { println!("stop get token"); }
         Ok(t)
     }
-    pub async fn file_as_part(&self, address: i32, mime_type : &str) -> Result<reqwest::multipart::Part, Box<dyn std::error::Error>> {
+    pub async fn file_as_part(&self, address: i32, mime_type: &str) -> Result<reqwest::multipart::Part, Box<dyn std::error::Error>> {
         println!("start unlock LOCATIONS");
         let my_ref1 = LOCATIONS.lock().unwrap();
         println!("Unlock LOCATIONS is OK");
@@ -158,7 +159,7 @@ impl EasAPI {
                 f
             }
             _ => {
-                "/Users/bruno/dvlpt/rust/archive.txt"
+                "/Users/bruno/dvlpt/rust/devdur-1.pdf"
             }
         };
         drop(my_ref1);
@@ -166,11 +167,13 @@ impl EasAPI {
         let path = Path::new(fname);
         let mut file = Tokio_File::open(path).await?;
         let _fcl = file.read_to_end(&mut async_buffer).await?;
-        let file_content = str::from_utf8(&*async_buffer).unwrap().to_string();
-        let file_part = reqwest::multipart::Part::text(file_content)
-            .file_name(path.file_name().unwrap().to_string_lossy())
-            .mime_str(mime_type).unwrap();
-        Ok(file_part)
+        unsafe {
+            let file_content = str::from_utf8_unchecked(&*async_buffer).to_string();
+            let file_part = reqwest::multipart::Part::text(file_content)
+                .file_name(path.file_name().unwrap().to_string_lossy())
+                .mime_str(mime_type).unwrap();
+            Ok(file_part)
+        }
     }
     pub async fn eas_post_document(&mut self, address: i32, display: bool) -> Result<EasResult, Box<dyn std::error::Error>> {
         let request_url = "https://apprec.cecurity.com/eas.integrator.api/eas/documents";
@@ -188,99 +191,100 @@ impl EasAPI {
 
             _ => {
                 println!("ko use default value");
-                "/Users/bruno/dvlpt/rust/archive.txt"
+                "/Users/bruno/dvlpt/rust/devdur-1.pdf"
             }
         };
         drop(my_ref1);
         let (digest_string, status) = compute_digest(fname);
-        if !status { return Ok(EasResult::EasError(EasError::new(digest_string.as_str())))}
+        if !status { return Ok(EasResult::EasError(EasError::new(digest_string.as_str()))); }
         let file1_name = Path::new(fname).file_name().unwrap().to_str().unwrap();
 
         self.set_digest(digest_string.clone());
         // build part for first file
-        let file_part_async = self.file_as_part(address,"application/octet-stream").await?;
+        let file_part_async = self.file_as_part(address, "application/octet-stream").await?;
         if display {
             println!("SHA256 Digest for {} is {}", fname, self.digest.as_ref().unwrap().clone());
         }
 
         // compute digest of file 2
-        let fname2 = "/users/bruno/dvlpt/rust/archive1.txt";
+        let fname2 = "/users/bruno/dvlpt/rust/devdur-2.pdf";
         let (digest_string2, status2) = compute_digest(fname2);
-        if !status2 { return Ok(EasResult::EasError(EasError::new(digest_string2.as_str())))}
+        if !status2 { return Ok(EasResult::EasError(EasError::new(digest_string2.as_str()))); }
         if display {
-            println!("SHA256 Digest for {} is {}", "/users/bruno/dvlpt/rust/archive1.txt", digest_string2);
+            println!("SHA256 Digest for {} is {}", "/users/bruno/dvlpt/rust/devdur-2.pdf", digest_string2);
         }
         // build part for second file
         let mut sync_buffer = Vec::new();
-        let path1 = Path::new("/users/bruno/dvlpt/rust/archive1.txt");
+        let path1 = Path::new("/users/bruno/dvlpt/rust/devdur-2.pdf");
         let file2_name = path1.file_name().unwrap().to_str().unwrap();
         let mut file1 = File::open(path1).unwrap();
         let _fcl = file1.read_to_end(&mut sync_buffer);
-        let file_content = str::from_utf8(&*sync_buffer).unwrap().to_string();
-        let file_part_sync2 = reqwest::multipart::Part::text(file_content)
-            .file_name(path1.file_name().unwrap().to_string_lossy())
-            .mime_str("application/octet-stream").unwrap();
-
         let meta = json!([
-            {"name": "ClientId", "value": "987654321"},
-            {"name": "CustomerId", "value": "CLIENT-BRI"},
+            {"name": "ClientId", "value": "987654319"},
+            {"name": "CustomerId", "value": "CLIENT-BRI2"},
             {"name": "Documenttype", "value": "Validated invoice"}
         ]);
-        // TODO Add additional file with metadata inside
-        // was  fname instead of archive.txt
-
         let upload_file_fingerprint = json!([
             {"fileName": file1_name, "fingerPrint" : digest_string.clone().to_lowercase(),"fingerPrintAlgorithm": "SHA-256"},
-//            {"fileName": "toto.pdf", "fingerPrint" : digest_string.clone().to_lowercase(),"fingerPrintAlgorithm": "SHA-256"},
             {"fileName": file2_name, "fingerPrint" : digest_string2.clone().to_uppercase(),"fingerPrintAlgorithm" : "SHA-256"}
         ]);
+        unsafe {
+            let file_content = str::from_utf8_unchecked(&*sync_buffer).to_string();
+            let file_part_sync2 = reqwest::multipart::Part::text(file_content)
+                .file_name(path1.file_name().unwrap().to_string_lossy())
+                .mime_str("application/octet-stream").unwrap();
 
-        let form = Form::new()
-            .part("document",file_part_async)
-            .part("document", file_part_sync2)
-            .text("metadata", meta.to_string())
-            .text("fingerPrints", upload_file_fingerprint.to_string());
+            // TODO Add additional file with metadata inside
+            // was  fname instead of archive.txt
 
-        let response = Client::new()
-            .post(request_url)
-            .header("Authorization", auth_bearer)
-            .header("Accept", "application/json")
-            .multipart(form)
-            .send()
-            .await?;
-        let sc = response.status();
-        if display {
-            let headers = response.headers();
-            for (key, value) in headers.iter() {
-                println!("{:?}: {:?}", key, value);
+
+            let form = Form::new()
+                .part("document", file_part_async)
+                .part("document", file_part_sync2)
+                .text("metadata", meta.to_string())
+                .text("fingerPrints", upload_file_fingerprint.to_string());
+
+            let response = Client::new()
+                .post(request_url)
+                .header("Authorization", auth_bearer)
+                .header("Accept", "application/json")
+                .multipart(form)
+                .send()
+                .await?;
+            let sc = response.status();
+            if display {
+                let headers = response.headers();
+                for (key, value) in headers.iter() {
+                    println!("{:?}: {:?}", key, value);
+                }
             }
+            let body = response.text().await.unwrap();
+            if !sc.is_success() {
+                println!("Request failed => {} {}", sc, &body);
+                return Ok(self.failure_info(sc, &body));
+            }
+            if display { println!("Status : {:#?}\n{:#?}", sc, body); }
+            // Extract ticket
+            let r: Result<Ticket, Error> = serde_json::from_str(&body);
+            let eas_r: EasResult = match r {
+                Ok(res) => {
+                    self.ticket = Some(res);
+                    if display { println!("Body contains ticket"); }
+                    EasResult::ApiOk
+                }
+                Err(e) => {
+                    if display {
+                        println!("Unable to deserialize body => ticket\nError {}", e);
+                    };
+                    EasResult::SerdeError(SerdeError::new(e.to_string().as_str()))
+                }
+            };
+            if display { println!("Stop post document"); }
+            Ok(eas_r)
         }
-        let body = response.text().await.unwrap();
-        if !sc.is_success() {
-            println!("Request failed => {} {}", sc, &body);
-            return Ok(self.failure_info(sc,&body));
-        }
-        if display { println!("Status : {:#?}\n{:#?}", sc, body); }
-        // Extract ticket
-        let r: Result<Ticket, Error> = serde_json::from_str(&body);
-        let eas_r: EasResult = match r {
-            Ok(res) => {
-                self.ticket = Some(res);
-                if display { println!("Body contains ticket"); }
-                EasResult::ApiOk
-            }
-            Err(e) => {
-                if display {
-                    println!("Unable to deserialize body => ticket\nError {}", e);
-                };
-                EasResult::SerdeError(SerdeError::new(e.to_string().as_str()))
-            }
-        };
-        if display { println!("Stop post document"); }
-        Ok(eas_r)
     }
-    pub async fn eas_get_content_list(&mut self,display: bool) -> Result<EasResult, reqwest::Error> {
-        let request_url = format!("https://apprec.cecurity.com/eas.integrator.api/eas/documents/{}/contentList",self.get_ticket_string());
+    pub async fn eas_get_content_list(&mut self, display: bool) -> Result<EasResult, reqwest::Error> {
+        let request_url = format!("https://apprec.cecurity.com/eas.integrator.api/eas/documents/{}/contentList", self.get_ticket_string());
         if display { println!("Start get content list"); }
         let auth_bearer = format!("Bearer {}", self.get_token_string());
 
@@ -299,29 +303,29 @@ impl EasAPI {
         let body = response.text().await.unwrap();
         if !sc.is_success() {
             println!("Request failed => {} {}", sc, &body);
-            return Ok(self.failure_info(sc,&body));
+            return Ok(self.failure_info(sc, &body));
         }
         if display {
             println!("Status : {:#?}\n{:#?}", sc, body);
         }
         let r: Result<Vec<String>, Error> = serde_json::from_str(&body);
-        let mut doc_list : Vec<String> = Vec::new();
+        let mut doc_list: Vec<String> = Vec::new();
         let eas_r: EasResult = match r {
             Ok(res) => {
-                println!("Found {} documents",res.len());
+                println!("Found {} documents in contentList", res.len());
                 for st in &res {
-                    println!("Found {}",st);
+                    println!("Found {}", st);
                     doc_list.push(st.clone());
                 }
                 // TODO Save content list of documents in archive
                 self.set_doc_list(doc_list);
                 EasResult::ApiOk
-            },
+            }
             Err(e) => EasResult::SerdeError(SerdeError::new(e.to_string().as_str()))
         };
         Ok(eas_r)
     }
-    pub async fn eas_delete_archive(&self, ticket: &str, motivation: &str , display: bool) -> Result<EasResult, reqwest::Error> {
+    pub async fn eas_delete_archive(&self, ticket: &str, motivation: &str, display: bool) -> Result<EasResult, reqwest::Error> {
         // was self.get_ticket_string()
         let request_url = format!("{}/{}", "https://apprec.cecurity.com/eas.integrator.api/eas/documents", ticket);
         if display { println!("Start delete archive"); }
@@ -331,7 +335,7 @@ impl EasAPI {
             .delete(request_url)
             .header("Accept", "application/json")
             .header("Authorization", auth_bearer)
-            .query(&[("motivation",motivation)])
+            .query(&[("motivation", motivation)])
             .send().await?;
         let sc = response.status();
         if display {
@@ -343,7 +347,7 @@ impl EasAPI {
         let body = response.text().await.unwrap();
         if !sc.is_success() {
             println!("Request failed => {}", sc);
-            return Ok(self.failure_info(sc,&body));
+            return Ok(self.failure_info(sc, &body));
         }
         if display {
             println!("Status : {:#?}\n{:#?}", sc, body);
@@ -370,18 +374,21 @@ impl EasAPI {
         let body = response.text().await.unwrap();
         if !sc.is_success() {
             println!("Request failed => {}", sc);
-            return Ok(self.failure_info(sc,&body));
+            return Ok(self.failure_info(sc, &body));
         }
         if display {
             println!("Status : {:#?}\n{:#?}", sc, body);
         }
         // deserialize doc from b64
         let r: Result<EasDocument, Error> = serde_json::from_str(&body);
-        let (eas_r,status): (EasResult, bool) = match r {
-            Ok(res) => (EasResult::EasDocument(res),true),
-            Err(e) => (EasResult::SerdeError(SerdeError::new(e.to_string().as_str())),false)
+        let (eas_r, status): (EasResult, bool) = match r {
+            Ok(res) => (EasResult::EasDocument(res), true),
+            Err(e) => (EasResult::SerdeError(SerdeError::new(e.to_string().as_str())), false)
         };
-        if !status {println!("ERRRRRor");return Ok(eas_r);}
+        if !status {
+            println!("ERRRRRor");
+            return Ok(eas_r);
+        }
         // Transform base64 => [u8] and save
         if let EasResult::EasDocument(res) = &eas_r {
             let mime_type = &*&res.get_mime_type();
@@ -425,7 +432,7 @@ impl EasAPI {
         let body = response.text().await.unwrap();
         if !sc.is_success() {
             println!("Request failed => {}", sc);
-            return Ok(self.failure_info(sc,&body));
+            return Ok(self.failure_info(sc, &body));
         }
         if display {
             println!("Status : {:#?}\n{:#?}", sc, body);
@@ -463,6 +470,7 @@ fn sha256_digest<R: Read>(mut reader: R) -> Result<Digest, Error> {
     }
     Ok(context.finish())
 }
+
 fn compute_digest(path: &str) -> (String, bool) {
     let digest_string: String;
     if let Ok(input_file) = File::open(path) {
