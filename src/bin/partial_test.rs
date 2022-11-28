@@ -6,8 +6,8 @@ use std::env;
 use std::fmt;
 
 use reqwest::{Client};
-use serde_json::{json,Error};
-use serde_json::Result as serde_result;
+use serde_json::{json};
+//use serde_json::Result as serde_result;
 use serde::{Deserialize,Serialize};
 
 
@@ -92,8 +92,8 @@ fn build_sms() -> FullSms {
     let phone2 = PhoneNumber {value: "33601453037".to_string()};
     let v_phone = vec![phone1,phone2];
     let v_rec= Recipient {gsm: v_phone};
-    let sms = Sms {message: message, recipients: v_rec};
-    let full_sms = FullSms {sms: sms};
+    let sms = Sms {message, recipients: v_rec};
+    let full_sms = FullSms {sms};
     println!("Build_sms -> {}",full_sms);
     full_sms
 }

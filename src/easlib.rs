@@ -41,7 +41,7 @@ impl EasAPI {
     pub fn set_token(&mut self, token: String) {
         self.token = Some(Token::new(token));
     }
-    pub fn set_doc_list(&mut self, doc_list: Vec<String>) { self.doc_list = Some(doc_list.clone()); }
+    pub fn set_doc_list(&mut self, doc_list: Vec<String>) { self.doc_list = Some(doc_list); }
     pub fn show(&self) {
         println!("Summary\n---------------------");
         println!("credentials: {:?}", self.credentials);
@@ -94,7 +94,7 @@ impl EasAPI {
         return match sc {
             StatusCode::BAD_REQUEST => EasResult::ReqWestError(ReqWestError::new("Bad Request")),
             _ => {
-                let er: Result<ErrorResponse, Error> = serde_json::from_str(&body);
+                let er: Result<ErrorResponse, Error> = serde_json::from_str(body);
                 let a_er: EasResult = match er {
                     Ok(res) => {
                         EasResult::EasError(EasError::new(res.to_string().as_str()))
@@ -151,6 +151,7 @@ impl EasAPI {
     }
     pub async fn file_as_part(&self, address: i32, mime_type: &str) -> Result<reqwest::multipart::Part, Box<dyn std::error::Error>> {
         println!("start unlock LOCATIONS");
+
         let my_ref1 = LOCATIONS.lock().unwrap();
         println!("Unlock LOCATIONS is OK");
         let address = my_ref1.get(&address);
@@ -168,7 +169,7 @@ impl EasAPI {
         let mut file = Tokio_File::open(path).await?;
         let _fcl = file.read_to_end(&mut async_buffer).await?;
         unsafe {
-            let file_content = str::from_utf8_unchecked(&*async_buffer).to_string();
+            let file_content = str::from_utf8_unchecked(&async_buffer).to_string();
             let file_part = reqwest::multipart::Part::text(file_content)
                 .file_name(path.file_name().unwrap().to_string_lossy())
                 .mime_str(mime_type).unwrap();
@@ -229,7 +230,7 @@ impl EasAPI {
             {"fileName": file2_name, "fingerPrint" : digest_string2.clone().to_uppercase(),"fingerPrintAlgorithm" : "SHA-256"}
         ]);
         unsafe {
-            let file_content = str::from_utf8_unchecked(&*sync_buffer).to_string();
+            let file_content = str::from_utf8_unchecked(&sync_buffer).to_string();
             let file_part_sync2 = reqwest::multipart::Part::text(file_content)
                 .file_name(path1.file_name().unwrap().to_string_lossy())
                 .mime_str("application/octet-stream").unwrap();
@@ -485,6 +486,6 @@ fn compute_digest(path: &str) -> (String, bool) {
         println!("Error opening file {}", path);
         return (format!("Error opening file {}", path), false);
     }
-    return (digest_string, true);
+    (digest_string, true)
 }
 

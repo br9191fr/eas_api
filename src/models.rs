@@ -42,8 +42,7 @@ impl Token {
         Token { token }
     }
     pub fn get_token(&self) -> &String {
-        let string = &self.token;
-        string
+        &self.token
     }
 }
 
@@ -64,8 +63,7 @@ impl Ticket {
         Ticket { archive_ticket: ticket }
     }
     pub fn get_ticket(&self) -> &String {
-        let string = &self.archive_ticket;
-        string
+        &self.archive_ticket
     }
 }
 
