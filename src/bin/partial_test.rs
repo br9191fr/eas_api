@@ -93,15 +93,15 @@ fn build_sms() -> FullSms {
     let v_phone = vec![phone1,phone2];
     let v_rec= Recipient {gsm: v_phone};
     let sms = Sms {message: message, recipients: v_rec};
-    let fullSms = FullSms {sms: sms};
-    println!("Build_sms -> {}",fullSms);
-    fullSms
+    let full_sms = FullSms {sms: sms};
+    println!("Build_sms -> {}",full_sms);
+    full_sms
 }
 fn get_sms_string(sms : &FullSms) -> String {
     let sms_string = serde_json::to_string(&sms);
     let ss : String = match sms_string {
         Ok(s )=> s,
-        Err(e) => "nothing".to_string()
+        Err(_e) => "nothing".to_string()
     };
     ss
 }
@@ -122,7 +122,7 @@ async fn send_sms() -> Result<(), reqwest::Error> {
     }
     });
     let sms = build_sms();
-    println!("payload -> {}", payload.to_string());
+    println!("payload -> {}", payload);
     println!("sms1     -> {}", get_sms_string(&sms));
     let sms_string = get_sms_string(&sms);
     println!("sms2     -> {:#?}", sms_string);
@@ -175,13 +175,12 @@ fn run_compose () {
 #[tokio::main] async
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let param: &str;
-    if (args.len() >1 ) {
-        param = &args[1];
+    let param: &str = if args.is_empty() {
+        &args[1]
     }
     else {
-        param = "Nothing";
-    }
+        "Nothing"
+    };
     //send_sms().await;
 
     get_data(param).await;

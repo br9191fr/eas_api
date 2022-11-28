@@ -26,8 +26,8 @@ pub fn build_static_locations(w: i32, file_to_archive: &String) -> i32 {
     let ad_where = w;
     let mut locations = LOCATIONS.lock().unwrap();
     locations.insert(ad_where, string_to_static_str(file_to_archive.to_string()));
-    println!("F to archive is {}",file_to_archive.to_string());
-    return ad_where;
+    println!("F to archive is {}",file_to_archive);
+    ad_where
 }
 
 pub fn setup_logger(log_thread: bool, rust_log: Option<&str>) {
@@ -40,9 +40,9 @@ pub fn setup_logger(log_thread: bool, rust_log: Option<&str>) {
 
         let local_time: DateTime<Local> = Local::now();
         let time_str = local_time.format("%H:%M:%S%.3f").to_string();
-        write!(
+        writeln!(
             formatter,
-            "{} {}{} - {} - {}\n",
+            "{} {}{} - {} - {}",
             time_str,
             thread_name,
             record.level(),

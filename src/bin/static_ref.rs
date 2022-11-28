@@ -24,20 +24,18 @@ async fn main() {
         println!("Missing arguments\nUsage: Static_ref filename");
         return;
     }
-    let mut k = 0;
     let mut locations = LOCATIONS.lock().unwrap();
-    let mut k = 0;
-    for st in &args {
-        if (k > 0) {
+
+    for (k,st) in args.iter().enumerate() {
+        if k > 0 {
             locations.insert(k, string_to_static_str(st.to_string()));
             println!("Insert {} at position {}", &st, k);
         }
-        k += 1;
     }
     println!(" insert OK");
     let my_ref = locations;
     for k in 0..args.len() {
-        let _add_ok = match my_ref.get(&k) {
+        match my_ref.get(&k) {
             Some(f) => {
                 println!("At {} => {}",k, f);
             }

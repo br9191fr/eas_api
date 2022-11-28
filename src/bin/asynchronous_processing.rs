@@ -28,7 +28,7 @@ async fn record_owned_message_receipt(_msg: &OwnedMessage) {
 }
 
 // Emulates an expensive, synchronous computation.
-fn expensive_computation<'a>(msg: OwnedMessage) -> String {
+fn expensive_computation(msg: OwnedMessage) -> String {
     info!("Starting expensive computation on message {}", msg.offset());
     thread::sleep(Duration::from_millis(rand::random::<u64>() % 5000));
     info!(
@@ -184,6 +184,6 @@ async fn main() {
             ))
         })
         .collect::<FuturesUnordered<_>>()
-        .for_each(|_| async { () })
+        .for_each(|_| async { })
         .await
 }

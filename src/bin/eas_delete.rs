@@ -35,13 +35,13 @@ async fn eas_process(ticket: &str, motivation: &str, display: bool) -> Result<bo
     }
     eas_r.show("Delete Archive");
 
-    return Ok(true);
+    Ok(true)
 }
 
 #[tokio::main]
 async fn main() {
     let args: Vec<String> = env::args().collect();
-    if args.len() < 1 {
+    if args.is_empty() {
         println!("Missing arguments\nUsage: pgm ticket_to_delete");
         return;
     }

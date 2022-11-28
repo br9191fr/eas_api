@@ -13,7 +13,7 @@ error_chain! {
 #[tokio::main]
 async fn main() -> Result<()> {
     //let tmp_dir = Builder::new().prefix("example").tempdir()?;
-    let tmp_dir = Builder::new().prefix("example").tempdir()?;
+    let _tmp_dir = Builder::new().prefix("example").tempdir()?;
     let target = "https://www.rust-lang.org/logos/rust-logo-512x512.png";
     let response = reqwest::get(target).await?;
 

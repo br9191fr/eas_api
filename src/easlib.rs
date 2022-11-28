@@ -42,7 +42,7 @@ impl EasAPI {
         self.token = Some(Token::new(token));
     }
     pub fn set_doc_list(&mut self, doc_list: Vec<String>) { self.doc_list = Some(doc_list.clone()); }
-    pub fn show(&self) -> () {
+    pub fn show(&self) {
         println!("Summary\n---------------------");
         println!("credentials: {:?}", self.credentials);
         match &self.token {
@@ -211,7 +211,7 @@ impl EasAPI {
         let (digest_string2, status2) = compute_digest(fname2);
         if !status2 { return Ok(EasResult::EasError(EasError::new(digest_string2.as_str()))); }
         if display {
-            println!("SHA256 Digest for {} is {}", "/users/bruno/dvlpt/rust/devdur-2.pdf", digest_string2);
+            println!("SHA256 Digest for /users/bruno/dvlpt/rust/devdur-2.pdf is {}", digest_string2);
         }
         // build part for second file
         let mut sync_buffer = Vec::new();
@@ -391,7 +391,7 @@ impl EasAPI {
         }
         // Transform base64 => [u8] and save
         if let EasResult::EasDocument(res) = &eas_r {
-            let mime_type = &*&res.get_mime_type();
+            let mime_type = &res.get_mime_type();
             let b64_document = &res.get_base64_document();
             let document = BASE64.decode(b64_document.as_bytes()).unwrap();
             let document_length = document.len();

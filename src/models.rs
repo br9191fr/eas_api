@@ -86,16 +86,13 @@ pub struct ErrorResponse {
 
 impl ErrorResponse {
     fn get_error_code(&self) -> &String {
-        let string = &self.error_code;
-        string
+        &self.error_code
     }
     fn get_error_message(&self) -> &String {
-        let string = &self.error_message;
-        string
+        &self.error_message
     }
     fn get_status(&self) -> &String {
-        let string = &self.status;
-        string
+        &self.status
     }
     fn new(error_code: String, error_message: String, status: String) -> Self {
         ErrorResponse { error_code, error_message, status }
@@ -181,7 +178,7 @@ impl EasResult {
         }
     }
     pub fn show(&self, msg: &str) {
-        match &*self {
+        match self {
             EasResult::Token(t) => println!("[{}] Token: {}", msg, t),
             EasResult::Ticket(at) => println!("[{}] Ticket: {}", msg, at),
             EasResult::EasDocument(d) => println!("[{}] Document: {}", msg, d),

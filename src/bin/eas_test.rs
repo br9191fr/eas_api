@@ -109,13 +109,13 @@ async fn eas_process(address: i32, display: bool, delete_finally: bool) -> Resul
 
     // TODO get matching documents
     //api.show();
-    return Ok(true);
+    Ok(true)
 }
 
 #[tokio::main]
 async fn main() {
     let args: Vec<String> = env::args().collect();
-    if args.len() < 1 {
+    if args.is_empty() {
         println!("Missing arguments\nUsage: pgm file_to_archive");
         return;
     }

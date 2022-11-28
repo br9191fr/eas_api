@@ -14,7 +14,7 @@ fn global_data() -> &'static Mutex<HashMap<i32, String>> {
         Mutex::new(m)
     })
 }
-fn main() -> () {
+fn main()  {
     let gd = global_data();
     let mut hm = gd.lock().unwrap();
     println!("{:?}", hm);
@@ -27,5 +27,4 @@ fn main() -> () {
     drop(hm);
     hm = gd.lock().unwrap();
     println!("{:?}", hm);
-
 }
