@@ -35,5 +35,5 @@ fn main() {
 
     drink(coffee);
     drink(nothing);
-    drink(vide2);
+    drink(vide1);
 }
