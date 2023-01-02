@@ -1,4 +1,39 @@
 
-pub fn main() {
-    println!("OK");
+// The adult has seen it all, and can handle any drink well.
+// All drinks are handled explicitly using `match`.
+fn give_adult(drink: Option<&str>) {
+    // Specify a course of action for each case.
+    match drink {
+        Some("lemonade") => println!("Yuck! Too sugary."),
+        Some(inner)   => println!("{}? How nice.", inner),
+        None          => println!("No drink? Oh well."),
+    }
+}
+
+// Others will `panic` before drinking sugary drinks.
+// All drinks are handled implicitly using `unwrap`.
+fn drink(drink: Option<&str>) {
+    // `unwrap` returns a `panic` when it receives a `None`.
+    let inside = drink.unwrap();
+    if inside == "lemonade" { panic!("AAAaaaaa!!!!"); }
+
+    println!("I love {}s!!!!!", inside);
+}
+
+fn main() {
+    let water  = Some("water");
+    let lemonade = Some("lemonade");
+    //let vide1  = None;
+    let vide2 = None;
+    give_adult(water);
+    give_adult(lemonade);
+    give_adult(vide2);
+
+    let coffee = Some("coffee");
+    //let _rien = None;
+    let nothing = Some("chocolate");
+
+    drink(coffee);
+    drink(nothing);
+    drink(vide2);
 }

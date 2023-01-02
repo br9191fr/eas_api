@@ -36,6 +36,9 @@ path = "src/bin/simple_producer.rs"
 [[bin]]
 name = "metadata"
 path = "src/bin/metadata.rs"
+[[bin]]
+name = "my_main"
+path = "src/bin/main.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
